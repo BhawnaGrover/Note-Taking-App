@@ -85,7 +85,7 @@ function Apps() {
                 name="content"
                 onChange={(e) => setContent(e.target.value)}
                 value={content}
-                placeholder="Take a note...."
+                placeholder="Take a note..."
                 rows="3"
               ></input>
               <button onClick={addItem}>Add</button>
