@@ -27,6 +27,7 @@ const SignIn = () => {
       if (response.ok) {
         console.log("Signup Successful");
         // You can redirect or perform other actions after successful signup
+        window.location.href = "/";
       } else {
         alert(data.error || data.message || "Something went wrong");
       }
