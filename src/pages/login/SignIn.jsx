@@ -3,33 +3,67 @@ import "./signIn.css";
 import user_icon from "../../components/Assets/person.png";
 import email_icon from "../../components/Assets/email.png";
 import password_icon from "../../components/Assets/password.png";
-import { useNavigate } from "react-router-dom";
-import auth from "../../components/auth/auth.js";
-const SignIn = () => {
-  const { http } = auth();
-  const [action, setAction] = useState("Login");
-  const [username, setUsername] = useState();
-  const [email, setEmail] = useState();
-  const [password, setPassword] = useState();
-  const submitForm = () => {
-    console.log(username + ' ' + email + ' ' + password);
-    http.post('/auth/signup',{username:username,email:email,password:password}).then((res)=>{
-        console.log(res.data);
-    })
-    // fetch("https://note-taking-backend-server.vercel.app/api/auth/signup", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     Accept: "application/json",
-    //   },
-    //   body: JSON.stringify({username:username,email:email,password:password}),
-    // });
-  };
-  //   const navigate = useNavigate();
 
-  //   const navigateHome = () => {
-  //       navigate('/home');
-  //   };
+const SignIn = () => {
+  const [action, setAction] = useState("Login");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch("https://note-taking-backend-server.vercel.app/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("Signup Successful");
+        // You can redirect or perform other actions after successful signup
+      } else {
+        alert(data.error || data.message || "Something went wrong");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred. Please try again later.");
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch("https://note-taking-backend-server.vercel.app/api/auth/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+      console.log(data);
+      if (response.ok) {
+        console.log("Login Successful");
+        // You can redirect or perform other actions after successful login
+        localStorage.setItem('x-auth-token', data.user.token);
+        window.location.href = "/home";
+      } else {
+        alert(data.error || data.message || "Invalid credentials");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred. Please try again later.");
+    }
+  };
+
   return (
     <div className="container">
       <div className="header_login">
@@ -54,36 +88,36 @@ const SignIn = () => {
           Login
         </div>
       </div>
-      <form onSubmit={submitForm}>
+      <form onSubmit={action === "Login" ? handleLogin : handleSignup} className="form-container">
         <div className="input">
           <img src={user_icon} alt=""></img>
           <input
             type="text"
             placeholder="Username"
             required
+            value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
         </div>
-        {action === "Login" ? (
-          <div></div>
-        ) : (
+        {action === "Login" ? null : (
           <div className="input">
             <img src={email_icon} alt=""></img>
             <input
               type="email"
               placeholder="Email"
               required
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
         )}
-
         <div className="input">
           <img src={password_icon} alt=""></img>
           <input
             type="password"
             placeholder="Password"
             required
+            value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
@@ -91,10 +125,8 @@ const SignIn = () => {
           <div className="forgot_password">
             Forgot Password? <span>Click Here!</span>
           </div>
-        ) : (
-          <div></div>
-        )}
-        <button className="login-btn" type="submit" >
+        ) : null}
+        <button className="login-btn" type="submit">
           {action}
         </button>
       </form>
