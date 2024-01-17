@@ -11,20 +11,36 @@ body {
   background: #eee;
 }
 
-header {
+.header {
+  display: flex;
+  /* flex-direction: row; */
   background-color: #f5ba13;
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+  height: 70px;
 }
 
-header h1 {
+.header .logo {
+  float: left;
   color: #fff;
   font-family: "McLaren", cursive;
+  font-size: 30px;
   font-weight: 200;
   padding: 10px;
 }
+.header .rightlogo {
+  text-align: right;
+  color: #fff;
+  font-family: "McLaren", cursive;
+  font-size: 30px;
+  /* font-weight: 50; */
+  padding: 10px;
+  cursor: pointer;
+}
+.rightlogo span{
+  font-weight: 200;
+}
 
 footer {
-  position: absolute;
   text-align: center;
   bottom: 0;
   width: 100%;
@@ -85,7 +101,7 @@ form textarea {
   font-family: inherit;
   resize: none;
 }
-form button {
+.add_button{
   position: absolute;
   right: 18px;
   bottom: -18px;
@@ -101,17 +117,20 @@ form button {
 }
 .noteShow{
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 }
 .noteShow .removeAll{
-  justify-content: space-evenly;
+  margin-top: 30px;
+  margin-bottom: 30px;
   text-align: center;
   background: #f5ba13;
+  border-radius: 30px;
   color: #fff;
+  padding: 10px;
+  width: 150px;
   border: none;
-  width: 66px;
-  height: 36px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   cursor: pointer;
 }

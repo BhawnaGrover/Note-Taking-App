@@ -88,13 +88,11 @@ function Apps() {
                 placeholder="Take a note..."
                 rows="3"
               ></input>
-              <button onClick={addItem}>Add</button>
+              <button className="add_button" onClick={addItem}>Add</button>
             </form>
           </div>
 
           <div className="noteShow">
-            {/* <p>To remove all notes clicl here</p> */}
-            <div>
               <div className="removeAll" onClick={() => setNotes([])}>
                 Remove All
               </div>
@@ -104,7 +102,6 @@ function Apps() {
                 )}
                 {notes.length < 1 && <div> No notes are added yet </div>}
               </div>
-            </div>
           </div>
           <Footer></Footer>
         </div>
