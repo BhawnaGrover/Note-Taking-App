@@ -9,7 +9,7 @@ function Note(notes){
         <div className="note">
             <h1>{notes.title}</h1>
             <p>{notes.content}</p>
-            <button className="deletebtn" onClick={handleClick}>DEL</button>
+            <button className="deletebtn" onClick={handleClick}>DELETE</button>
         </div>
     );
 }

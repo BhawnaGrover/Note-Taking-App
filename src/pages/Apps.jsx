@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
-import { View } from "./View";
 import PacmanLoader from "react-spinners/PacmanLoader";
+
 const getDataFromLS = () => {
   const data = localStorage.getItem("notes");
   if (data) {
@@ -11,51 +11,150 @@ const getDataFromLS = () => {
     return [];
   }
 };
+
 function Apps() {
   const [notes, setNotes] = useState(getDataFromLS);
-  const [number, setNumber] = useState("");
+  // const [number, setNumber] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-
-  const addItem = (e) => {
-    e.preventDefault();
-    let note = {
-      number,
-      title,
-      content,
-    };
-    setNotes([...notes, note]);
-    setNumber("");
-    setTitle("");
-    setContent("");
-  };
-
-  const deleteNote = (number) => {
-    const filteredNotes = notes.filter((element, index) => {
-      return element.number !== number;
-    });
-    setNotes(filteredNotes);
-  };
-  useEffect(() => {
-    localStorage.setItem("notes", JSON.stringify(notes));
-  }, [notes]);
   const [loading, setloading] = useState(false);
+  const [isUpdatePopupOpen, setIsUpdatePopupOpen] = useState(false);
+  const [selectedTodo, setSelectedTodo] = useState(null);
+
+  const apiUrl = "https://note-taking-backend-server.vercel.app/api/task";
+
+  const fetchTodos = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/all`, {
+        method: "GET",
+        headers: {
+          "x-auth-token": localStorage.getItem("x-auth-token"),
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setNotes(data.todos);
+      } else {
+        alert(data.error || "Failed to fetch todos");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred. Please try again later.");
+    }
+  };
+
+  const addItem = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${apiUrl}/add`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-auth-token": localStorage.getItem("x-auth-token"),
+        },
+        body: JSON.stringify({ title, task: content }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setNotes(data.user.todos);
+        // setNumber("");
+        setTitle("");
+        setContent("");
+      } else {
+        alert(data.error || "Failed to add todo");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred. Please try again later.");
+    }
+  };
+
+  const openUpdatePopup = (todo) => {
+    setSelectedTodo(todo);
+    setIsUpdatePopupOpen(true);
+  };
+
+  const closeUpdatePopup = () => {
+    setSelectedTodo(null);
+    setIsUpdatePopupOpen(false);
+  };
+
+  const updateNote = async (todoId, updatedData) => {
+    try {
+      const response = await fetch(`${apiUrl}/${todoId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "x-auth-token": localStorage.getItem("x-auth-token"),
+        },
+        body: JSON.stringify(updatedData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setNotes(data.user.todos);
+        closeUpdatePopup();
+      } else {
+        alert(data.error || "Failed to update todo");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred. Please try again later.");
+    }
+  };
+
+  const deleteNote = async (todoId) => {
+    try {
+      const response = await fetch(`${apiUrl}/${todoId}`, {
+        method: "DELETE",
+        headers: {
+          "x-auth-token": localStorage.getItem("x-auth-token"),
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setNotes(data.user.todos);
+      } else {
+        alert(data.error || "Failed to delete todo");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred. Please try again later.");
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('x-auth-token');
+    window.location.href="/";
+  }
 
   useEffect(() => {
     setloading(true);
     setTimeout(() => {
-      setloading(false);
+      if(localStorage.getItem("x-auth-token") != null){
+        setloading(false);
+      }else{
+        window.location.href="/";
+      }
     }, 3000);
+
+    fetchTodos();
   }, []);
 
   return (
     <div className="App">
       {loading ? (
-        <center style={{"margin-top": "300px"}}>
+        <center style={{ marginTop: "300px" }}>
           <PacmanLoader
             color="#f5ba13"
             loading={loading}
-            //cssOverride={override}
             size={40}
             aria-label="PacmanLoader Spinner"
             data-testid="loader"
@@ -66,13 +165,6 @@ function Apps() {
           <Header />
           <div className="main">
             <form>
-              <label>Serial Number</label>
-              <input
-                type="text"
-                value={number}
-                onChange={(e) => setNumber(e.target.value)}
-                placeholder="Serial Number"
-              ></input>
               <label>Title</label>
               <input
                 type="text"
@@ -88,25 +180,75 @@ function Apps() {
                 placeholder="Take a note..."
                 rows="3"
               ></input>
-              <button className="add_button" onClick={addItem}>Add</button>
+              <button className="add_button" onClick={addItem}>
+                Add
+              </button>
             </form>
           </div>
+          {isUpdatePopupOpen && (
+            <div className="center-div">
+            <div className="update-popup">
+              <h2>Update Todo</h2>
+              <label>Title</label>
+              <input
+                type="text"
+                value={selectedTodo.title}
+                onChange={(e) =>
+                  setSelectedTodo({ ...selectedTodo, title: e.target.value })
+                }
+              />
+              <label>Task</label>
+              <input
+                type="text"
+                value={selectedTodo.task}
+                onChange={(e) =>
+                  setSelectedTodo({ ...selectedTodo, task: e.target.value })
+                }
+              />
+              <div className="btn-container">
+                <button
+                  onClick={() => updateNote(selectedTodo._id, selectedTodo)}
+                >
+                  Save
+                </button>
+                <button onClick={closeUpdatePopup}>Cancel</button>
+              </div>
+            </div></div>
+          )}
 
           <div className="noteShow">
-              <div className="removeAll" onClick={() => setNotes([])}>
-                Remove All
-              </div>
-              <div className="noteDisplay">
-                {notes.length > 0 && (
-                  <View notes={notes} deleteNote={deleteNote}></View>
-                )}
-                {notes.length < 1 && <div> No notes are added yet </div>}
-              </div>
+            <div className="removeAll" onClick={() => setNotes([])}>
+              Remove All
+            </div>
+            <div className="noteDisplay">
+              {notes.map((note) => (
+                <div key={note._id} className="note">
+                  <h1 className="title">{note.title}</h1>
+                  <i className="task">{note.task}</i>
+                  <span className="btn-container">
+                    <button
+                      className="deletebtn"
+                      onClick={() => deleteNote(note._id)}
+                    >
+                      DELETE
+                    </button>
+                    <button
+                      className="updatebtn"
+                      onClick={() => openUpdatePopup(note)}
+                    >
+                      UPDATE
+                    </button>
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
+          <button className="logoutbtn" onClick={logout}>logout</button>
           <Footer></Footer>
         </div>
       )}
     </div>
   );
 }
+
 export default Apps;
